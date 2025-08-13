@@ -1,3 +1,5 @@
+# Resultado  no Beerowd "Accept"
+
 import sys
 
 def inverter(numero):
