@@ -1,0 +1,55 @@
+import numpy as np
+
+def inverter(numero):
+    resultado = 0
+    while numero > 0:
+        resultado = resultado * 10 + (numero % 10)
+        numero = numero // 10
+    return resultado
+
+def resolver_inversao(A, B):
+    MAX = 10000
+    aperto = np.full(MAX, -1, dtype=int)
+    visitado = np.full(MAX, False, dtype=bool)
+
+    # Fila manual usando numpy
+    fila = np.zeros(MAX, dtype=int)
+    inicio = 0
+    fim = 0
+
+    # Inserir A na fila
+    fila[fim] = A
+    fim += 1
+    visitado[A] = True
+    aperto[A] = 0
+
+    while inicio < fim:
+        X = fila[inicio]
+        inicio += 1
+
+        if X == B:
+            print(aperto[B])
+            return
+
+        proximo1 = X + 1
+        if proximo1 < MAX and not visitado[proximo1]:
+            fila[fim] = proximo1
+            fim += 1
+            visitado[proximo1] = True
+            aperto[proximo1] = aperto[X] + 1
+
+        proximo2 = inverter(X)
+        if proximo2 < MAX and not visitado[proximo2]:
+            fila[fim] = proximo2
+            fim += 1
+            visitado[proximo2] = True
+            aperto[proximo2] = aperto[X] + 1
+
+def main():
+    T = int(input())  # número de casos de teste
+    for _ in range(T):
+        A, B = map(int, input().split())
+        resolver_inversao(A, B)
+
+if __name__ == '__main__':
+    main()
