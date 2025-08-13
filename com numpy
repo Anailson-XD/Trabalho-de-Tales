@@ -1,3 +1,5 @@
+# Resultado  no Beerowd "time limit exceeded"
+
 import numpy as np
 
 def inverter(numero):
