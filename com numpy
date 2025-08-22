@@ -8,7 +8,7 @@ def inverter(numero):
     return resultado
 
 def resolver_inversao(A, B):
-    MAX = 10000
+    MAX = 10001
     aperto = np.full(MAX, -1, dtype=int)
     visitado = np.full(MAX, False, dtype=bool)
 
