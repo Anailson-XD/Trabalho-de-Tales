@@ -1,0 +1,185 @@
+import tkinter as tk
+from tkinter import messagebox
+from collections import deque
+
+import networkx as nx
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
+
+def cria_grafo(n):
+    return [[] for _ in range(n)]
+
+def insere_aresta(grafo, u, v):
+    grafo[u].append(v)
+    grafo[v].append(u) 
+
+
+def bfs_visit(grafo, s, cor, dist, pai):
+    cor[s] = "CINZA"
+    dist[s] = 0
+    fila = deque([s])
+
+    while fila:
+        u = fila.popleft()
+
+        for v in grafo[u]:
+            if cor[v] == "BRANCO":
+                cor[v] = "CINZA"
+                dist[v] = dist[u] + 1
+                pai[v] = u
+                fila.append(v)
+
+        cor[u] = "PRETO"
+
+
+def bfs(grafo):
+    n = len(grafo)
+    cor = ["BRANCO"] * n
+    dist = [float("inf")] * n
+    pai = [None] * n
+
+    for s in range(n):
+        if cor[s] == "BRANCO":
+            bfs_visit(grafo, s, cor, dist, pai)
+
+    return cor, dist, pai
+
+
+class BFSApp:
+    def __init__(self, master):
+        self.master = master
+        master.title("Grafo + BFS + Visualização")
+
+        self.grafo = []
+        self.arestas_restantes = 0
+
+
+        tk.Label(master, text="Número de vértices:").pack()
+        self.entry_vertices = tk.Entry(master)
+        self.entry_vertices.pack()
+
+        tk.Button(master, text="Criar grafo", command=self.criar_grafo).pack()
+
+        tk.Label(master, text="Número de arestas:").pack()
+        self.entry_arestas = tk.Entry(master)
+        self.entry_arestas.pack()
+
+        tk.Button(master, text="Iniciar inserção de arestas", command=self.iniciar_arestas).pack()
+
+        # Arestas
+        tk.Label(master, text="Aresta (u v):").pack()
+        self.entry_aresta = tk.Entry(master)
+        self.entry_aresta.pack()
+
+        tk.Button(master, text="Adicionar aresta", command=self.adicionar_aresta).pack()
+
+        # Botão BFS
+        tk.Button(master, text="Executar BFS", command=self.executar_bfs).pack()
+
+        # Área de texto
+        self.text_area = tk.Text(master, height=12, width=60)
+        self.text_area.pack()
+
+        # Área de desenho
+        self.figure = plt.Figure(figsize=(5, 4))
+        self.canvas = FigureCanvasTkAgg(self.figure, master)
+        self.canvas.get_tk_widget().pack()
+
+
+    def criar_grafo(self):
+        try:
+            n = int(self.entry_vertices.get())
+            self.grafo = cria_grafo(n)
+            messagebox.showinfo("OK", "Grafo criado com sucesso!")
+        except:
+            messagebox.showerror("Erro", "Valor inválido.")
+
+    def iniciar_arestas(self):
+        try:
+            self.arestas_restantes = int(self.entry_arestas.get())
+            messagebox.showinfo("OK", f"Insira {self.arestas_restantes} arestas.")
+        except:
+            messagebox.showerror("Erro", "Número inválido.")
+
+    def adicionar_aresta(self):
+        if self.arestas_restantes <= 0:
+            messagebox.showwarning("Atenção", "Todas as arestas já foram inseridas!")
+            return
+
+        try:
+            u, v = map(int, self.entry_aresta.get().split())
+            insere_aresta(self.grafo, u, v)
+            self.arestas_restantes -= 1
+
+            messagebox.showinfo("OK", f"Aresta {u}-{v} adicionada. Restantes: {self.arestas_restantes}")
+            self.entry_aresta.delete(0, tk.END)
+
+            self.desenhar_grafo()
+        except:
+            messagebox.showerror("Erro", "Digite no formato: u v")
+
+    def executar_bfs(self):
+        if not self.grafo:
+            messagebox.showerror("Erro", "Crie o grafo primeiro!")
+            return
+
+        cores, dist, pai = bfs(self.grafo)
+
+        self.text_area.delete("1.0", tk.END)
+        self.text_area.insert(tk.END, "--- RESULTADOS BFS ---\n")
+        self.text_area.insert(tk.END, f"Cores:        {cores}\n")
+        self.text_area.insert(tk.END, f"Distâncias:   {dist}\n")
+        self.text_area.insert(tk.END, f"Ancestrais:   {pai}\n")
+
+        self.desenhar_grafo(cores)
+
+    def desenhar_grafo(self, cores=None):
+        self.figure.clf()
+
+        G = nx.Graph()
+
+        # Adiciona vértices
+        for i in range(len(self.grafo)):
+            G.add_node(i)
+
+        # Adiciona arestas
+        for u in range(len(self.grafo)):
+            for v in self.grafo[u]:
+                if u < v:
+                    G.add_edge(u, v)
+
+        ax = self.figure.add_subplot(111)
+        ax.set_title("Representação Visual do Grafo")
+
+        # Cores reais da BFS
+        color_map = []
+        if cores:
+            for c in cores:
+                if c == "BRANCO":
+                    color_map.append("lightgray")
+                elif c == "CINZA":
+                    color_map.append("yellow")
+                elif c == "PRETO":
+                    color_map.append("lightgreen")
+        else:
+            color_map = ["skyblue"] * len(self.grafo)
+
+        pos = nx.spring_layout(G, seed=42)
+
+        nx.draw(
+            G,
+            pos,
+            ax=ax,
+            with_labels=True,
+            node_color=color_map,
+            node_size=800,
+            font_size=12
+        )
+
+        self.canvas.draw()
+
+
+root = tk.Tk()
+app = BFSApp(root)
+root.mainloop()
