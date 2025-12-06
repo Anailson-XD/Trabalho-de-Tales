@@ -1,0 +1,66 @@
+from collections import deque
+
+def cria_grafo(n):
+    return [[] for _ in range(n)]
+
+def insere_aresta(grafo, u, v):
+    grafo[u].append(v)
+    grafo[v].append(u) 
+
+
+def bfs_visit(grafo, s, cor, dist, pai):
+    cor[s] = "CINZA"
+    dist[s] = 0
+
+    fila = deque()
+    fila.append(s)
+
+    while fila:
+        u = fila.popleft()
+
+        for v in grafo[u]:
+            if cor[v] == "BRANCO":
+                cor[v] = "CINZA"
+                dist[v] = dist[u] + 1
+                pai[v] = u
+                fila.append(v)
+
+        cor[u] = "PRETO"
+
+
+def bfs(grafo):
+    n = len(grafo)
+    cor = ["BRANCO"] * n
+    dist = [float("inf")] * n
+    pai = [None] * n
+
+    for s in range(n):
+        if cor[s] == "BRANCO":
+            bfs_visit(grafo, s, cor, dist, pai)
+
+    return cor, dist, pai
+
+
+if __name__ == "__main__":
+    print("Digite o número de vértices:")
+    n = int(input())
+    grafo = cria_grafo(n)
+
+    print("Digite o número de arestas:")
+    m = int(input())
+
+    print("Digite cada aresta no formato: u v")
+    print("(vértices devem ser números entre 0 e", n-1, ")")
+
+    for _ in range(m):
+        u, v = map(int, input().split())
+        insere_aresta(grafo, u, v)
+
+
+    cores, distancias, pais = bfs(grafo)
+
+    print("\n--- RESULTADOS BFS ---")
+    print("Vértices:      ", list(range(n)))
+    print("Cores:         ", cores)
+    print("Distâncias:    ", distancias)
+    print("Antecessores:  ", pais)
